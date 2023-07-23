@@ -171,6 +171,17 @@
             }
           }
         ],
+
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "ok",
@@ -424,8 +435,96 @@
           "users": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserDto"
+              "$ref": "#/components/schemas/CreateUserDto"
             }
+          }
+        }
+      },
+      "CreateUserDto": {
+        "required": [
+          "password",
+          "isActive",
+          "balance",
+          "age",
+          "name",
+          "gender",
+          "company",
+          "email",
+          "phone",
+          "address",
+          "about",
+          "registered",
+          "latitude",
+          "longitude",
+          "tags",
+          "friends",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "string"
+          },
+          "age": {
+            "type": "string",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "about": {
+            "type": "string"
+          },
+          "registered": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "latitude": {
+            "type": "string",
+            "format": "float64"
+          },
+          "longitude": {
+            "type": "string",
+            "format": "float64"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "friends": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FriendsDto"
+            }
+          },
+          "data": {
+            "type": "string"
           }
         }
       },
@@ -440,6 +539,79 @@
             "items": {
               "$ref": "#/components/schemas/UserDto"
             }
+          }
+        }
+      },
+
+      "UpdateUserRequest": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "string"
+          },
+          "age": {
+            "type": "string",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "about": {
+            "type": "string"
+          },
+          "registered": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "latitude": {
+            "type": "string",
+            "format": "float64"
+          },
+          "longitude": {
+            "type": "string",
+            "format": "float64"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "friends": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FriendsDto"
+            }
+          },
+          "data": {
+            "type": "string"
           }
         }
       },
