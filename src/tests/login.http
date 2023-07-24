@@ -1,0 +1,30 @@
+
+GET localhost:8080/user/mAdo98L1nvCzdw4CanEmah8PrPqzFNQmO509HrdKCxcLEcluy1zwm9PLvSIOWhZxDFtnM3rLvjK4cVKVpC0BjYbeU6KpDe14Eh0T
+
+###
+
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{
+  "id": "mAdo98L1nvCzdw4CanEmah8PrPqzFNQmO509HrdKCxcLEcluy1zwm9PLvSIOWhZxDFtnM3rLvjK4cVKVpC0BjYbeU6KpDe14Eh0T",
+  "password": "VMRmmHi0NvcGHQHI5wrA"
+}
+
+###
+# curl -X POST --data "stuff=123" localhost:8080
+POST localhost:8080/login
+Content-Type: application/x-www-form-urlencoded
+
+id=mAdo98L1nvCzdw4CanEmah8PrPqzFNQmO509HrdKCxcLEcluy1zwm9PLvSIOWhZxDFtnM3rLvjK4cVKVpC0BjYbeU6KpDe14Eh0T&password=VMRmmHi0NvcGHQHI5wrA
+
+###
+
+
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{
+  "id": "mAdo98L1nvCzdw4CanEmah8PrPqzFNQmO509HrdKCxcLEcluy1zwm9PLvSIOWhZxDFtnM3rLvjK4cVKVpC0BjYbeU6KpDe14Eh0T",
+  "password": "VMRmmHi0NvcGHQHI5wrA"
+}

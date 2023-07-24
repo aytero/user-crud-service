@@ -25,8 +25,6 @@ func NewUserRepository(dbConn *database.Database) *UserRepository {
 	}
 }
 
-// todo rename to getUserById
-
 func (r *UserRepository) GetById(ctx context.Context, id string) (*model.User, error) {
 	var us model.User
 
@@ -69,25 +67,29 @@ func (r *UserRepository) AddUsers(ctx context.Context, users []*model.User) ([]*
 	return users, nil
 }
 
-func (r *UserRepository) UpdateUser(ctx context.Context, id string, user model.User) (model.User, error) {
-	in := bson.M{}
-	if user.Name != "" {
-		in["name"] = user.Name
+func (r *UserRepository) UpdateUser(ctx context.Context, id string, user *model.User) (*model.User, error) {
+	uByte, err := bson.Marshal(user)
+	if err != nil {
+		return nil, err
 	}
-	if user.Password != "" && len(user.Password) > 0 {
-		in["password"] = user.Password
+	var in bson.M
+	err = bson.Unmarshal(uByte, &in)
+	if err != nil {
+		return nil, err
 	}
-	// todo etc model fields
-	filter := bson.M{"id": user.Id}
-	fields := bson.M{"$set": user}
+
+	filter := bson.M{"id": id}
+	fields := bson.D{{"$set", in}}
 
 	out, err := r.db.Conn.Collection(r.db.Cfg.CollectionName).UpdateOne(ctx, filter, fields)
 	if err != nil {
-		return model.User{}, err
+		return nil, err
 	}
 	if out.MatchedCount == 0 {
-		return model.User{}, ErrNotFound
+		return nil, ErrNotFound
 	}
+	// todo return updated fields or all fields ?
+	// model createUser omitempty
 	return user, nil
 }
 
@@ -120,6 +122,5 @@ func (r *UserRepository) GetUsersList(ctx context.Context) ([]model.User, error)
 		}
 		users = append(users, us)
 	}
-
 	return users, nil
 }

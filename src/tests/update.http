@@ -1,0 +1,19 @@
+
+PATCH http://localhost:8080/user/1t5VsIBXpGl4s8C4CAXTsAlIZISYEOlicj14obz3CwFXCCvaRyuhDI10fah5IfdMS3VblW51my8xt6aQvJI3qNg5as0yqoTCvdZd
+Content-Type: application/json
+
+  {
+    "name": "Nikki Farley Far Away",
+    "gender": "female",
+    "company": "Ecole 42",
+    "email": "nikkifarley@ecole42.com",
+    "phone": "+1 (868) 439-2675",
+    "address": "588 Schaefer Street, Falconaire, Missouri, 9457",
+    "data": "G7UxL"
+  }
+
+###
+
+GET localhost:8080/user/1t5VsIBXpGl4s8C4CAXTsAlIZISYEOlicj14obz3CwFXCCvaRyuhDI10fah5IfdMS3VblW51my8xt6aQvJI3qNg5as0yqoTCvdZd
+
+###

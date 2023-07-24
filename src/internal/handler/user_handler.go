@@ -1,12 +1,13 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	"io"
 	"net/http"
 	"strings"
 	"user-crud-service/internal/handler/dto"
@@ -46,8 +47,7 @@ func SetupUserHandler(router *gin.Engine, service UserService) {
 	//router.GET("/swagger/*any", swaggerHandler)
 
 	router.GET("/users/list", h.GetUsersList)
-	router.POST("/add/users/", h.AddUsers)
-	//router.POST("/add/user/", h.AddUser)
+	router.POST("/add/users", h.AddUsers)
 	router.GET("/user/:id", h.GetUser)
 	router.PATCH("/user/:id", h.UpdateUser)
 	router.POST("/login", h.LoginUser)
@@ -59,29 +59,38 @@ func (h *UserHandler) GetUsersList(ctx *gin.Context) {
 	// todo ctx
 	users, err := h.s.GetUsersList(ctx.Request.Context())
 	if err != nil {
-		log.Info().Msg(fmt.Sprintf("UserHandler - GetUsersList: %v", err))
+		if errors.Is(err, repository.ErrNotFound) {
+			ctx.JSON(http.StatusOK, []model.User{})
+			return
+
+		}
+		log.Info().Msgf("UserHandler - GetUsersList: %v", err)
 		ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
 		return
 	}
 
 	// todo
 	//usersResponse := dto.ParseFromEntitySlice(users)
-	usersResponse := users
-	ctx.JSON(http.StatusOK, usersResponse)
+
+	ctx.JSON(http.StatusOK, users)
+	//ctx.JSON(http.StatusOK, []model.User{})
 }
 
 func (h *UserHandler) GetUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
+		log.Info().Msg("UserHandler - GetUser: invalid user id")
 		ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
 		return
 	}
 	user, err := h.s.GetUser(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
+			log.Info().Msgf("UserHandler - GetUser: %v", err)
 			ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
 			return
 		}
+		log.Error().Msgf("UserHandler - GetUser: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.InternalServerErrorResponse{})
 		return
 	}
@@ -89,16 +98,25 @@ func (h *UserHandler) GetUser(ctx *gin.Context) {
 }
 
 func (h *UserHandler) AddUsers(ctx *gin.Context) {
+
+	body := ctx.Request.Body
+	defer body.Close()
+
+	data, _ := io.ReadAll(body)
+
 	var req []*model.User
 
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		log.Info().Msg(fmt.Sprintf("UserHandler - addUsers: %v", err))
+	err := json.Unmarshal(data, &req)
+	//err := ctx.ShouldBindJSON(&req)
+	if err != nil {
+		log.Info().Msgf("UserHandler - AddUsers: %v", err)
 		ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
 		return
 	}
 
 	users, err := h.s.AddUsers(ctx, req)
 	if err != nil {
+		log.Error().Msgf("UserHandler - AddUsers: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.InternalServerErrorResponse{})
 		return
 	}
@@ -108,17 +126,20 @@ func (h *UserHandler) AddUsers(ctx *gin.Context) {
 func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
+		log.Info().Msg("UserHandler - UpdateUser: invalid user id")
 		ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
 		return
 	}
-	var req model.User
+	var req *model.User
 
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+	if err := ctx.BindJSON(&req); err != nil {
+		log.Info().Msgf("UserHandler - UpdateUser: %v", err)
 		ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
 		return
 	}
 	user, err := h.s.UpdateUser(ctx, id, req)
 	if err != nil {
+		log.Info().Msgf("UserHandler - UpdateUser: %v", err)
 		ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
 		return
 	}
@@ -128,11 +149,13 @@ func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 func (h *UserHandler) DeleteUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
+		log.Info().Msg("UserHandler - DeleteUser: invalid user id")
 		ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
 		return
 	}
 	err := h.s.DeleteUser(ctx, id)
 	if err != nil {
+		log.Info().Msgf("UserHandler - DeleteUser: %v", err)
 		ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
 		return
 	}
@@ -140,27 +163,54 @@ func (h *UserHandler) DeleteUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"id": id})
 }
 
+type LoginForm struct {
+	Id       string `form:"id" binding:"required"`
+	Password string `form:"password" binding:"required"`
+}
+type LoginJSON struct {
+	User     string `json:"user" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 func (h *UserHandler) LoginUser(ctx *gin.Context) {
 	session := sessions.Default(ctx)
-	id := ctx.PostForm("id")
-	password := ctx.PostForm("password")
 
-	if strings.Trim(id, " ") == "" || strings.Trim(password, " ") == "" {
+	//var req struct {
+	//	Id       string
+	//	Password string
+	//}
+
+	var req LoginForm
+
+	req.Id = ctx.PostForm("id")
+	req.Password = ctx.PostForm("password")
+	if strings.Trim(req.Id, " ") == "" || strings.Trim(req.Password, " ") == "" {
+
+		log.Info().Msg("UserHandler - LoginUser: invalid id or password")
 		ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
 		return
 	}
 
+	//if err := ctx.ShouldBindJSON(&req); err != nil {
+	//	log.Info().Msgf("UserHandler - LoginUser: %v", err)
+	//	ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
+	//	return
+	//}
+
 	// Check for id and password match, from a database
-	user, err := h.s.GetUser(ctx, id)
+	user, err := h.s.GetUser(ctx, req.Id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
+			log.Info().Msgf("UserHandler - LoginUser: %v", err)
 			ctx.JSON(http.StatusBadRequest, dto.BadRequestResponse{})
 			return
 		}
+		log.Error().Msgf("UserHandler - LoginUser: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.InternalServerErrorResponse{})
 		return
 	}
-	if id != user.Id || !middleware.CheckPasswordHash(password, user.Password) {
+	if req.Id != user.Id || !middleware.CheckPasswordHash(req.Password, user.Password) {
+		log.Info().Msg("UserHandler - LoginUser: invalid id or password")
 		// todo
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
 		return
@@ -168,12 +218,14 @@ func (h *UserHandler) LoginUser(ctx *gin.Context) {
 	const userkey = "user"
 
 	// Save the id in the session
-	session.Set(userkey, id) // set this to the users ID
+	session.Set(userkey, req.Id) // set this to the users ID
 
 	if err := session.Save(); err != nil {
+		log.Error().Msgf("UserHandler - LoginUser: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.InternalServerErrorResponse{})
 		return
 	}
 	// todo
 	ctx.JSON(http.StatusOK, gin.H{"message": "Successfully authenticated user"})
+	ctx.JSON(http.StatusOK, user)
 }
