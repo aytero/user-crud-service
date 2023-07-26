@@ -1,3 +1,8 @@
+package docs
+
+import "github.com/swaggo/swag"
+
+const docTemplate = `
 {
   "openapi": "3.0.1",
   "info": {
@@ -11,30 +16,6 @@
           "user-controller"
         ],
         "operationId": "getUsersList",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "example": 10
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "example": 0
-          }
-        ],
         "responses": {
           "200": {
             "description": "ok",
@@ -43,7 +24,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserDto"
+                    "$ref": "#/components/schemas/UserPublicInfoDto"
                   }
                 }
               }
@@ -54,7 +35,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
+                  "$ref": "#/components/schemas/ErrorTextResponse"
                 }
               }
             }
@@ -67,12 +48,15 @@
         "tags": [
           "user-controller"
         ],
-        "operationId": "createUser",
+        "operationId": "addUsers",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateUserRequest"
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CreateUserDto"
+                }
               }
             }
           },
@@ -97,7 +81,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
+                  "$ref": "#/components/schemas/ErrorTextResponse"
                 }
               }
             }
@@ -138,7 +122,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
+                  "$ref": "#/components/schemas/ErrorTextResponse"
                 }
               }
             }
@@ -148,7 +132,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NotFoundResponse"
+                  "$ref": "#/components/schemas/ErrorTextResponse"
                 }
               }
             }
@@ -171,12 +155,11 @@
             }
           }
         ],
-
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserRequest"
+                "$ref": "#/components/schemas/UpdateUserDto"
               }
             }
           },
@@ -198,7 +181,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
+                  "$ref": "#/components/schemas/ErrorTextResponse"
                 }
               }
             }
@@ -208,7 +191,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NotFoundResponse"
+                  "$ref": "#/components/schemas/ErrorTextResponse"
                 }
               }
             }
@@ -252,7 +235,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
+                  "$ref": "#/components/schemas/ErrorTextResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorTextResponse"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorTextResponse"
                 }
               }
             }
@@ -267,7 +270,6 @@
           "user-controller"
         ],
         "operationId": "deleteUser",
-
         "parameters": [
           {
             "name": "user_id",
@@ -279,7 +281,6 @@
             }
           }
         ],
-
         "responses": {
           "200": {
             "description": "ok",
@@ -296,7 +297,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
+                  "$ref": "#/components/schemas/ErrorTextResponse"
                 }
               }
             }
@@ -306,7 +307,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NotFoundResponse"
+                  "$ref": "#/components/schemas/ErrorTextResponse"
                 }
               }
             }
@@ -317,23 +318,11 @@
   },
   "components": {
     "schemas": {
-      "BadRequestResponse": {
-        "type": "object"
-      },
-      "NotFoundResponse": {
-        "type": "object"
-      },
-
-      "FriendsDto": {
-        "required": [
-          "id",
-          "name"
-        ],
+      "ErrorTextResponse": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "int64"
+          "error": {
+            "type": "string"
           }
         }
       },
@@ -426,23 +415,25 @@
           }
         }
       },
-      "CreateUserRequest": {
+      "FriendsDto": {
         "required": [
-          "users"
+          "id",
+          "name"
         ],
         "type": "object",
         "properties": {
-          "users": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreateUserDto"
-            }
+          "id": {
+            "type": "string",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
-      "CreateUserDto": {
+      "UserPublicInfoDto": {
         "required": [
-          "password",
+          "id",
           "isActive",
           "balance",
           "age",
@@ -459,13 +450,10 @@
           "tags",
           "friends",
           "data"
-        ],
-        "type": "object",
-        "properties": {
+          ],
+         "type": "object",
+         "properties": {
           "id": {
-            "type": "string"
-          },
-          "password": {
             "type": "string"
           },
           "isActive": {
@@ -526,6 +514,20 @@
           "data": {
             "type": "string"
           }
+          }
+      },
+      "CreateUserRequest": {
+        "required": [
+          "users"
+        ],
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserDto"
+            }
+          }
         }
       },
       "CreateUserResponse": {
@@ -543,7 +545,7 @@
         }
       },
 
-      "UpdateUserRequest": {
+      "UpdateUserDto": {
         "required": [
           "id"
         ],
@@ -640,7 +642,30 @@
             "type": "string"
           }
         }
+      },
+      "BadRequestResponse": {
+        "type": "object"
+      },
+      "NotFoundResponse": {
+        "type": "object"
       }
     }
   }
+}
+`
+
+// SwaggerInfo holds exported Swagger Info so clients can modify it
+var SwaggerInfo = &swag.Spec{
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/v1",
+	Schemes:          []string{},
+	Title:            "Balance API",
+	Description:      "Service for interactions with user's money accounts",
+	InfoInstanceName: "swagger",
+	SwaggerTemplate:  docTemplate,
+}
+
+func init() {
+	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
 }

@@ -3,11 +3,11 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"user-crud-service/internal/database"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"user-crud-service/database"
 	"user-crud-service/model"
 )
 
@@ -25,6 +25,33 @@ func NewUserRepository(dbConn *database.Database) *UserRepository {
 	}
 }
 
+func (r *UserRepository) AddUser(ctx context.Context, user *model.User) error {
+	res, err := r.db.Conn.Collection(r.db.Cfg.CollectionName).InsertOne(ctx, user)
+	if err != nil {
+		return err
+	}
+	user.InsertedId = res.InsertedID.(primitive.ObjectID).String()
+	return nil
+
+}
+
+func (r *UserRepository) AddUsers(ctx context.Context, users []*model.User) error {
+	var usersDocs []interface{}
+	for _, u := range users {
+		usersDocs = append(usersDocs, u)
+	}
+	res, err := r.db.Conn.Collection(r.db.Cfg.CollectionName).InsertMany(ctx, usersDocs)
+	if err != nil {
+		return err
+	}
+	i := 0
+	for _, r := range res.InsertedIDs {
+		users[i].InsertedId = r.(primitive.ObjectID).String()
+		i++
+	}
+	return nil
+}
+
 func (r *UserRepository) GetById(ctx context.Context, id string) (*model.User, error) {
 	var us model.User
 
@@ -38,36 +65,25 @@ func (r *UserRepository) GetById(ctx context.Context, id string) (*model.User, e
 	return &us, nil
 }
 
-func (r *UserRepository) AddUser(ctx context.Context, user *model.User) (*model.User, error) {
-	res, err := r.db.Conn.Collection(r.db.Cfg.CollectionName).InsertOne(ctx, user)
+func (r *UserRepository) GetUsersList(ctx context.Context) ([]model.UserInfo, error) {
+	cur, err := r.db.Conn.Collection(r.db.Cfg.CollectionName).Find(ctx, bson.D{})
 	if err != nil {
 		return nil, err
 	}
-	// todo
-	//user.InsertedId = res.InsertedID.(primitive.ObjectID)
-	user.InsertedId = res.InsertedID.(primitive.ObjectID).String()
-	return user, nil
-}
+	defer cur.Close(ctx)
 
-func (r *UserRepository) AddUsers(ctx context.Context, users []*model.User) ([]*model.User, error) {
-	var usersDocs []interface{}
-	for _, u := range users {
-		usersDocs = append(usersDocs, u)
-	}
-	res, err := r.db.Conn.Collection(r.db.Cfg.CollectionName).InsertMany(ctx, usersDocs)
-	if err != nil {
-		return nil, err
-	}
-
-	i := 0
-	for _, r := range res.InsertedIDs {
-		users[i].InsertedId = r.(primitive.ObjectID).String()
-		i++
+	var users []model.UserInfo
+	for cur.Next(ctx) {
+		var us model.UserInfo
+		if err = cur.Decode(&us); err != nil {
+			return nil, err
+		}
+		users = append(users, us)
 	}
 	return users, nil
 }
 
-func (r *UserRepository) UpdateUser(ctx context.Context, id string, user *model.User) (*model.User, error) {
+func (r *UserRepository) UpdateUser(ctx context.Context, id string, user *model.UpdateUser) (*model.User, error) {
 	uByte, err := bson.Marshal(user)
 	if err != nil {
 		return nil, err
@@ -77,20 +93,25 @@ func (r *UserRepository) UpdateUser(ctx context.Context, id string, user *model.
 	if err != nil {
 		return nil, err
 	}
-
 	filter := bson.M{"id": id}
 	fields := bson.D{{"$set", in}}
 
-	out, err := r.db.Conn.Collection(r.db.Cfg.CollectionName).UpdateOne(ctx, filter, fields)
+	var res *model.User
+
+	err = r.db.Conn.Collection(r.db.Cfg.CollectionName).FindOneAndUpdate(
+		ctx,
+		filter,
+		fields,
+		options.FindOneAndUpdate().SetReturnDocument(options.After),
+	).Decode(&res)
+
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
-	if out.MatchedCount == 0 {
-		return nil, ErrNotFound
-	}
-	// todo return updated fields or all fields ?
-	// model createUser omitempty
-	return user, nil
+	return res, nil
 }
 
 func (r UserRepository) DeleteUser(ctx context.Context, id string) error {
@@ -103,24 +124,4 @@ func (r UserRepository) DeleteUser(ctx context.Context, id string) error {
 		return ErrNotFound
 	}
 	return nil
-}
-
-func (r *UserRepository) GetUsersList(ctx context.Context) ([]model.User, error) {
-	cur, err := r.db.Conn.Collection(r.db.Cfg.CollectionName).Find(ctx, bson.D{})
-	if err != nil {
-		return nil, err
-	}
-	defer cur.Close(ctx)
-
-	var users []model.User
-	for cur.Next(ctx) {
-		//var us bson.M
-		var us model.User
-		if err = cur.Decode(&us); err != nil {
-			fmt.Println(err)
-			return nil, err
-		}
-		users = append(users, us)
-	}
-	return users, nil
 }

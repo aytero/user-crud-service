@@ -16,12 +16,11 @@ type Database struct {
 
 func New(ctx context.Context, cfg config.MG) (*Database, error) {
 
-	// todo move to config
-	mongoURI := "mongodb://" + cfg.User + ":" + cfg.Password + "@localhost:27017"
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	// local Mongo URI
+	//mongoURI := "mongodb://" + cfg.User + ":" + cfg.Password + "@localhost:27017"
+	mongoURI := "mongodb://" + cfg.User + ":" + cfg.Password + "@" + cfg.Host + ":27017"
 
-	// main
-	//client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://"+cfg.User+":"+cfg.Password+"@db:27017"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		return nil, err
 	}

@@ -2,3 +2,6 @@
 .DS_Store/
 
 stash.go
+
+docker-compose.tests.yml
+Makefile

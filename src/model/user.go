@@ -9,33 +9,48 @@ import (
 
 type StringInt int
 
+// UserInfo is a public info about user, without the password hash
+type UserInfo struct {
+	InsertedId string    `json:"-" bson:"_id,omitempty"`
+	Id         string    `json:"id" bson:"id,omitempty" binding:"required"`
+	IsActive   bool      `json:"isActive" bson:"is_active,omitempty"` // binding:"required"`
+	Balance    string    `json:"balance" bson:"balance,omitempty"`
+	Age        StringInt `json:"age" bson:"age,omitempty" binding:"required"`
+	Name       string    `json:"name" bson:"name,omitempty" binding:"required"`
+	Gender     string    `json:"gender" bson:"gender,omitempty" binding:"required"`
+	Company    string    `json:"company" bson:"company,omitempty" binding:"required"`
+	Email      string    `json:"email" bson:"email,omitempty" binding:"required"`
+	Phone      string    `json:"phone" bson:"phone,omitempty" binding:"required"`
+	Address    string    `json:"address" bson:"address,omitempty" binding:"required"`
+	About      string    `json:"about" bson:"about,omitempty" binding:"required"`
+	Registered string    `json:"registered" bson:"registered,omitempty" binding:"required"`
+	Latitude   float64   `json:"latitude" bson:"latitude,omitempty"`
+	Longitude  float64   `json:"longitude" bson:"longitude,omitempty"`
+	Tags       []string  `json:"tags" bson:"tags,omitempty"`
+	Friends    []Friends `json:"friends" bson:"friend,omitempty"`
+	Data       string    `json:"data" bson:"data,omitempty" binding:"required"`
+}
+
 type User struct {
-	//InsertedId primitive.ObjectID `bson:"_id,omitempty"`
-	InsertedId string `json:"-" bson:"_id,omitempty"`
-	//Name     string             `bson:"name,omitempty"`
-	//Email    string             `bson:"email,omitempty"`
-	//Password string             `bson:"password,omitempty"`
-
-	Id       string    `json:"id" bson:"id,omitempty"`
-	Password string    `json:"password" bson:"password,omitempty"`
-	IsActive bool      `json:"isActive" bson:"is_active,omitempty"`
-	Balance  string    `json:"balance" bson:"balance,omitempty"`
-	Age      StringInt `json:"age" bson:"age,omitempty"`
-	Name     string    `json:"name" bson:"name,omitempty"`
-	Gender   string    `json:"gender" bson:"gender,omitempty"`
-	Company  string    `json:"company" bson:"company,omitempty"`
-	Email    string    `json:"email" bson:"email,omitempty"`
-	Phone    string    `json:"phone" bson:"phone,omitempty"`
-	Address  string    `json:"address" bson:"address,omitempty"`
-	About    string    `json:"about" bson:"about,omitempty"`
-
-	Registered string `json:"registered" bson:"registered,omitempty"`
-	//Registered *time.Time `json:"registered,string" bson:"registered"`
-	Latitude  float64   `json:"latitude" bson:"latitude,omitempty"`
-	Longitude float64   `json:"longitude" bson:"longitude,omitempty"`
-	Tags      []string  `json:"tags" bson:"tags,omitempty"`
-	Friends   []Friends `json:"friends" bson:"friend,omitempty"`
-	Data      string    `json:"data" bson:"data,omitempty"`
+	InsertedId string    `json:"-" bson:"_id,omitempty"`
+	Id         string    `json:"id" bson:"id,omitempty" binding:"required"`
+	Password   string    `json:"password" bson:"password,omitempty" binding:"required"`
+	IsActive   bool      `json:"isActive" bson:"is_active,omitempty"`
+	Balance    string    `json:"balance" bson:"balance,omitempty"`
+	Age        StringInt `json:"age" bson:"age,omitempty" binding:"required"`
+	Name       string    `json:"name" bson:"name,omitempty" binding:"required"`
+	Gender     string    `json:"gender" bson:"gender,omitempty" binding:"required"`
+	Company    string    `json:"company" bson:"company,omitempty" binding:"required"`
+	Email      string    `json:"email" bson:"email,omitempty" binding:"required"`
+	Phone      string    `json:"phone" bson:"phone,omitempty" binding:"required"`
+	Address    string    `json:"address" bson:"address,omitempty" binding:"required"`
+	About      string    `json:"about" bson:"about,omitempty" binding:"required"`
+	Registered string    `json:"registered" bson:"registered,omitempty" binding:"required"`
+	Latitude   float64   `json:"latitude" bson:"latitude,omitempty"`
+	Longitude  float64   `json:"longitude" bson:"longitude,omitempty"`
+	Tags       []string  `json:"tags" bson:"tags,omitempty"`
+	Friends    []Friends `json:"friends" bson:"friend,omitempty"`
+	Data       string    `json:"data" bson:"data,omitempty" binding:"required"`
 }
 
 type Friends struct {
@@ -70,8 +85,6 @@ type UpdateFriends struct {
 	Name string `json:"name,omitempty" bson:"name,omitempty"`
 }
 
-// UnmarshalJSON create a custom unmarshal for the StringInt
-// / this helps us check the type of our value before unmarshalling it
 func (st *StringInt) UnmarshalJSON(b []byte) error {
 	var item interface{}
 	if err := json.Unmarshal(b, &item); err != nil {
@@ -83,12 +96,8 @@ func (st *StringInt) UnmarshalJSON(b []byte) error {
 	case float64:
 		*st = StringInt(int(v))
 	case string:
-		///here convert the string into
-		///an integer
 		i, err := strconv.Atoi(v)
 		if err != nil {
-			///the string might not be of integer type
-			///so return an error
 			return err
 		}
 		*st = StringInt(i)

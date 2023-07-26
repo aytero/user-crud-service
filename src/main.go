@@ -10,29 +10,15 @@ import (
 	"syscall"
 	"time"
 	"user-crud-service/config"
-	"user-crud-service/internal/database"
-	"user-crud-service/internal/handler"
+	"user-crud-service/database"
+	"user-crud-service/handler"
 	"user-crud-service/repository"
 	"user-crud-service/server"
 	"user-crud-service/service"
 )
 
 func main() {
-	// todo write README, about launch
-	// todo docs
-
-	// todo tests
-
-	// todo login
-	// todo double login & session
-	// todo auth protection
-
-	// todo POST concurrency
-	// todo mongo transactions
-	// todo handle if user by ID already exists (addUser) | unique entries in db
-
-	// todo loglevel
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
 	cfg, err := config.NewConfig("config/.config.env")
 	if err != nil {
@@ -50,9 +36,8 @@ func main() {
 		log.Fatal().Msgf("failed db conn: %v", err)
 	}
 
-	//userRepo := repository.NewUserRepository(conn.Database("users"))
 	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(cfg.SRVC, userRepo)
 	router := gin.New()
 	handler.SetupUserHandler(router, userService)
 
@@ -69,13 +54,9 @@ func main() {
 		log.Error().Msgf("server err: %s", err)
 	}
 
-	defer func() {
-		cancel()
-		defer db.Close(ctx)
-		//defer serv.Stop()
-	}()
-
 	// Shutdown
+	defer cancel()
+	defer db.Close(ctx)
 	err = serv.Shutdown(ctx)
 	if err != nil {
 		log.Error().Msgf("server shutdown err: %v", err)

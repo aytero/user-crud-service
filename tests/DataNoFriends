@@ -1,0 +1,31 @@
+[
+  {
+    "id": "1t",
+    "password": "CGUsfQkS06lo7LM2guSV",
+    "isActive": false,
+    "balance": "$2,547.50",
+    "age": "27",
+    "name": "Nikki Farley",
+    "gender": "female",
+    "company": "ANIVET",
+    "email": "nikkifarley@anivet.com",
+    "phone": "+1 (868) 439-2675",
+    "address": "588 Schaefer Street, Falconaire, Missouri, 9457",
+    "about": "Commodo minim fugiat est fugiat sunt duis consectetur fugiat Lorem sunt. Dolor nulla nisi quis deserunt occaecat tempor reprehenderit. Amet sunt incididunt cillum magna id. Mollit reprehenderit irure non sunt aute consectetur adipisicing. Pariatur veniam proident ut nulla culpa eiusmod ipsum occaecat.\r\n",
+    "registered": "2014-10-12T04:14:20 -02:00",
+    "latitude": -10.647121,
+    "longitude": 126.04006,
+    "tags": [
+      "consectetur",
+      "ipsum",
+      "dolor",
+      "consectetur",
+      "laborum",
+      "incididunt",
+      "consequat"
+    ],
+    "friends": [
+    ],
+    "data":"G7UxLg4fDL3wifdV"
+  }
+]

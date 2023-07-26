@@ -1,7 +1,8 @@
 # user-crud-service
 
-a REST API in Golang, allowing data to be saved in a MongoDB type database. You can take the help of the Gin Gonic router.
-This API supports the following 4 CRUD functions:
+This is a REST API in Golang, allowing data to be saved in a MongoDB type database.
+
+This API supports the following 4 CRUD operations and login:
 
 1. Create
 - Request: POST /add/users 
@@ -24,6 +25,21 @@ This API supports the following 4 CRUD functions:
 5. Update
 - Request: UPDATE /user/:id 
 - Description: Modifies a user by their id. If the data field changes the file is modified.
+
+
+## Launch:
+```bash
+$ docker compose up --build
+```
+
+This command will create two containers:
+* MongoDB on 27017 port
+* App on 8080 port
+
+## Documentation:
+```bash
+http://localhost:8080/swagger/index.html
+```
 
 
 curl -X POST -d @tests/DataSetOne localhost:8080/add/users

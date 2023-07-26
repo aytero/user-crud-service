@@ -67,3 +67,7 @@ GET localhost:8080/users/list
 DELETE localhost:8080/delete/user/mAdo98L1nvCzdw4CanEmah8PrPqzFNQmO509HrdKCxcLEcluy1zwm9PLvSIOWhZxDFtnM3rLvjK4cVKVpC0BjYbeU6KpDe14Eh0T
 
 ###
+
+GET localhost:8080/user/mAdo98L1nvCzdw4CanEmah8PrPqzFNQmO509HrdKCxcLEcluy1zwm9PLvSIOWhZxDFtnM3rLvjK4cVKVpC0BjYbeU6KpDe14Eh0T
+
+###
